@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div class="row row-cols-1 row-cols-md-2">
+        {% for dashboard_item in dashboard_data %}
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ dashboard_item.title }}</h5>
+                        <p class="card-text">{{ dashboard_item.description }}</p>
+                    </div>
+                    <div class="card-body">
+                        {% for item in dashboard_item.link %}
+                            <a href="{{ item.href }}">{{ item.content }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock content %}
