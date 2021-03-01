@@ -1,15 +1,16 @@
-from models import app, db, Users, Staffs, Students
 from flask import url_for, render_template, redirect, request, flash
-from forms import LoginForm, RegistrationForm
-from flask_login import login_user, current_user, login_required, logout_user
 from flask_bcrypt import check_password_hash, generate_password_hash
+from flask_login import login_user, current_user, login_required, logout_user
+
+import csv
 import values
+from forms import LoginForm, RegistrationForm, AdminAddFileForm
+from models import app, db, Users, Staffs, Students, Courses, Indexes, StaffInCharged
 
 
 def get_dashboard():
     dashboard_data = values.dashboards['admin'] if current_user.type == 'admin' else \
-                    values.dashboards['staff'] if current_user.type == 'staff' else \
-                    values.dashboards['student']
+        values.dashboards['staff']
     return dashboard_data
 
 
@@ -48,23 +49,17 @@ def register_account():
     form = RegistrationForm()
 
     if form.validate_on_submit():
-        appointment = 'student' if form.appointment.data == 'Student' else 'staff'
+        appointment = 'staff'
         hashed_password = generate_password_hash(form.password.data).decode('utf-8')
         user = Users(email=form.email.data.casefold(), password=hashed_password, type=appointment)
         db.session.add(user)
         db.session.commit()
-        if appointment == 'student':
-            person = Students(name=form.name.data, matricNo=form.personNo.data, userId=user.id)
-        else:
-            person = Staffs(name=form.name.data, employeeNo=form.personNo.data,
-                            role=form.appointment.data.casefold(), userId=user.id)
+        person = Staffs(name=form.name.data, employeeNo=form.personNo.data,
+                        role=form.appointment.data.casefold(), userId=user.id)
         db.session.add(person)
         db.session.commit()
 
-        if appointment == 'student':
-            flash('A student account has been created', 'success')
-        else:
-            flash('A staff account has been created', 'success')
+        flash('A staff account has been created', 'success')
         return redirect(url_for('dashboard'))
     return render_template('register_account.html', form=form, title='Register', dashboard_data=dashboard_data)
 
@@ -74,6 +69,134 @@ def register_account():
 def dashboard():
     dashboard_data = get_dashboard()
     return render_template('dashboard.html', dashboard_data=dashboard_data, title="Dashboard")
+
+
+def find_student(matric_no):
+    return Students.query.filter_by(matricNo=matric_no).first()
+
+
+@app.route('/add_student', methods=['GET', 'POST'])
+@login_required
+def add_student():
+    if current_user.type != 'admin':
+        flash('You are not authorized to perform this action', 'danger')
+        return redirect(url_for('dashboard'))
+
+    dashboard_data = get_dashboard()
+    form = AdminAddFileForm()
+
+    if form.validate_on_submit():
+        added = False
+        file = form.fileInput.data
+        file_string = str(file.read(), 'utf-8')
+        student_dict = csv.DictReader(file_string.splitlines(), skipinitialspace=True)
+        for student_details in student_dict:
+            try:
+                student = find_student(student_details['matricNo'])
+                if student is None:  # Add the student if it is not inside the database
+                    added = True
+                    student = Students(name=student_details['name'], matricNo=student_details['matricNo'])
+                    db.session.add(student)
+            except:
+                flash('CSV contains incorrect fields', 'danger')
+                return redirect(url_for('dashboard'))
+
+        if added:
+            db.session.commit()
+            flash('Student details have been added', 'success')
+        else:
+            flash('No student details was added', 'info')
+        return redirect(url_for('dashboard'))
+
+    return render_template('admin_add_file.html', form=form, dashboard_data=dashboard_data, legend='Add Student')
+
+
+def find_course(course_code):
+    return Courses.query.filter_by(courseCode=course_code).first()
+
+
+def find_course_index(index_id):
+    return Indexes.query.filter_by(indexId=index_id).first()
+
+
+def get_course_id(course_code):
+    return Courses.query.filter_by(courseCode=course_code).first()
+
+
+def get_staff(staff_employee_id):
+    return Staffs.query.filter_by(employeeNo=staff_employee_id).first()
+
+
+def find_staff_in_charged(index_id, staff_id):
+    return StaffInCharged.query.filter_by(indexId=index_id, staffId=staff_id).first()
+
+
+@app.route('/upload_course', methods=['GET', 'POST'])
+@login_required
+def upload_course():
+    if current_user.type != 'admin':
+        flash('You are not authorized to perform this action', 'danger')
+        return redirect(url_for('dashboard'))
+
+    dashboard_data = get_dashboard()
+    form = AdminAddFileForm()
+
+    if form.validate_on_submit():
+        added = False
+        file = form.fileInput.data
+        file_string = str(file.read(), 'utf-8')
+        course_dict = csv.DictReader(file_string.splitlines(), skipinitialspace=True)
+        for course_details in course_dict:
+            try:
+                course = find_course(course_details['courseCode'])
+                if course is None:  # Add the course if it is not inside the database
+                    added = True
+                    course = Courses(name=course_details['name'], courseCode=course_details['courseCode'])
+                    db.session.add(course)
+
+                course_index = find_course_index(course_details['index'])
+                if course_index is None:
+                    added = True
+                    course_index = Indexes(indexId=course_details['index'], className=course_details['className'],
+                                           courseId=get_course_id(course_details['courseCode']))
+                    db.session.add(course_index)
+
+                staff = get_staff(course_details['staffInCharged'])
+                if staff is None:
+                    flash(f'{course_details["staffInCharged"]} is not inside the database. Please add this staff first',
+                          'danger')
+                    return redirect(url_for('dashboard'))
+
+                staff_in_charged = find_staff_in_charged(course_details['index'], staff.id)
+                if staff_in_charged is None:
+                    added = True
+                    staff_in_charged = StaffInCharged(indexId=course_details['index'], staffId=staff.id)
+                    db.session.add(staff_in_charged)
+            except:
+                flash('CSV contains incorrect fields', 'danger')
+                return redirect(url_for('dashboard'))
+
+        if added:
+            db.session.commit()
+            flash('Course details have been added', 'success')
+        else:
+            flash('No course details was added', 'info')
+        return redirect(url_for('dashboard'))
+
+    return render_template('admin_add_file.html', form=form, dashboard_data=dashboard_data, legend='Upload Course')
+
+
+@app.route('/upload_class', methods=['GET', 'POST'])
+@login_required
+def upload_class():
+    if current_user.type != 'admin':
+        flash('You are not authorized to perform this action', 'danger')
+        return redirect(url_for('dashboard'))
+
+    dashboard_data = get_dashboard()
+    form = AdminAddFileForm()
+
+    return render_template('admin_add_file.html', form=form, dashboard_data=dashboard_data, legend='Upload Class')
 
 
 if __name__ == '__main__':

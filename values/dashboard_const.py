@@ -2,51 +2,45 @@ dashboards = {
     "admin": [
         {
             'title': 'Account Registration',
-            'description': 'Register a new account for professor/lab technician/student to access this system',
-            'link': [
-                {
-                    'content': 'Register Account',
-                    'href': "/register_account"
-                }
-            ]
+            'description': 'Register a new account for professor/lab technician to access this system',
+            'link': {
+                'content': 'Register Account',
+                'href': "/register_account"
+            }
         },
         {
-            'title': 'Class Management',
-            'description': 'Upload professor and student timetable from NTU into this system',
-            'link': [
-                {
-                    'content': 'Professor Timetable',
-                    'href': '/upload_professor_timetable'
-                },
-                {
-                    'content': 'Student Timetable',
-                    'href': '/upload_professor_timetable'
-                }
-            ]
+            'title': 'Course Creation',
+            'description': 'Upload course details from NTU into this system',
+            'link': {
+                'content': 'Upload Course',
+                'href': '/upload_course'
+            }
+        },
+        {
+            'title': 'Class Creation',
+            'description': 'Upload class details from NTU into this system',
+            'link': {
+                'content': 'Upload Class',
+                'href': '/upload_class'
+            }
+        },
+        {
+            'title': 'Add Student',
+            'description': 'Add a student into this system',
+            'link': {
+                'content': 'Add Student',
+                'href': '/add_student'
+            }
         }
     ],
     "staff": [
         {
             'title': 'View Classes',
-            'description': "Check the attendance of the classes that you are teaching",
-            'link': [
-                {
-                    'content': 'View Classes',
-                    'href': '/view_classes'
-                }
-            ]
-        }
-    ],
-    "student": [
-        {
-            "title": 'Facial Image',
-            'description': 'Upload new facial images into the system',
-            'link': [
-                {
-                    'content': 'Upload Image',
-                    'href': '/upload_image'
-                }
-            ]
+            'description': "Check the attendance of the classes that you are teaching/supervising",
+            'link': {
+                'content': 'View Classes',
+                'href': '/view_classes'
+            }
         }
     ]
 }

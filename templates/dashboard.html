@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% block content %}
-    <div class="row row-cols-1 row-cols-md-2">
+    <div class="row row-cols-1 row-cols-md-2 g-4">
         {% for dashboard_item in dashboard_data %}
             <div class="col">
                 <div class="card h-100">
@@ -9,9 +9,7 @@
                         <p class="card-text">{{ dashboard_item.description }}</p>
                     </div>
                     <div class="card-body">
-                        {% for item in dashboard_item.link %}
-                            <a href="{{ item.href }}">{{ item.content }}</a>
-                        {% endfor %}
+                        <a href="{{ dashboard_item.link.href }}">{{ dashboard_item.link.content }}</a>
                     </div>
                 </div>
             </div>
