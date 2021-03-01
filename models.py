@@ -27,11 +27,11 @@ class Users(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
-    type = db.Column(db.String(20), nullable=False)     # Type: ['admin', 'staff']
+    role = db.Column(db.String(20), nullable=False)     # Role: ['admin', 'staff']
     staffId = db.relationship('Staffs', backref='Users', lazy=True)
 
     def __repr__(self):
-        return f"Users('{self.id}', '{self.email}, '{self.type}'')"
+        return f"Users('{self.id}', '{self.email}', '{self.role}')"
 
 
 class Staffs(db.Model):
@@ -40,7 +40,7 @@ class Staffs(db.Model):
     employeeNo = db.Column(db.String(20), unique=True, nullable=False)
     role = db.Column(db.String(20), nullable=False)     # Role: ['lab technician', 'professor']
     userId = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    indexesInCharge = db.relationship('StaffInCharged', backref='indexes', lazy=True)
+    indexesInCharge = db.relationship('StaffInCharged', backref='staff', lazy=True)
 
     def __repr__(self):
         return f"Staffs('{self.id}, {self.name}, {self.employeeNo}, {self.role}, {self.userId}')"
@@ -50,6 +50,7 @@ class Students(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     matricNo = db.Column(db.String(10), unique=True, nullable=False)
+    attendances = db.relationship('Attendance', backref='student', lazy=True)
 
     def __repr__(self):
         return f"Student('{self.id}', '{self.name}', '{self.matricNo}')"
@@ -74,7 +75,7 @@ class Indexes(db.Model):
     dates = db.relationship('IndexDates', backref='index', lazy=True)
 
     def __repr__(self):
-        return f"Indexes('{self.id}', '{self.indexId}', '{self.courseId}')"
+        return f"Indexes('{self.id}', '{self.indexId}', '{self.course.name}')"
 
 
 class StaffInCharged(db.Model):
@@ -83,7 +84,7 @@ class StaffInCharged(db.Model):
     staffId = db.Column(db.Integer, db.ForeignKey('staffs.id'), nullable=False)
 
     def __repr__(self):
-        return f"StaffInCharged('{self.id}', '{self.indexId}', '{self.staffId}')"
+        return f"StaffInCharged('{self.id}', '{self.indexId}', '{self.staff.name}')"
 
 
 # This is the table for the class date (E.g 26 Jan, 9 Feb, 23 Feb for index 10173)
@@ -91,8 +92,11 @@ class IndexDates(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.DateTime, nullable=False)
     attendance_started = db.Column(db.Boolean, default=False, nullable=False)
-    indexId = db.Column(db.Integer, db.ForeignKey('indexes.id'), nullable=False)
+    indexId = db.Column(db.Integer, db.ForeignKey('indexes.indexId'), nullable=False)
     attendance = db.relationship('Attendance', backref='indexDate', lazy=True)
+
+    def __repr__(self):
+        return f"IndexDates('{self.id}', '{self.indexId}', '{self.date}')"
 
 
 class Attendance(db.Model):
@@ -100,3 +104,7 @@ class Attendance(db.Model):
     indexDateId = db.Column(db.Integer, db.ForeignKey('index_dates.id'), nullable=False)
     studentId = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=False)
     attendance = db.Column(db.String(10), default='Absent', nullable=False)   # Absent/Present
+
+    def __repr__(self):
+        return f"Attendance('{self.id}', '{self.indexDate.indexId}', '{self.indexDate.date}', " \
+               f"'{self.student.name}', '{self.attendance}')"
