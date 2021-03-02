@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h3>Course code: {{ course_code }}, Group: {{ class_name }}</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Attendance Started</th>
+                <th scope="col">Link(s)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for class_date in class_dates %}
+            <tr>
+                <td>{{ class_date.date }}</td>
+                <td>{{ class_date.attendance_started }}</td>
+                <td>
+                    <a type="button" href="/view_attendance/{{ class_date.id }}" class="btn btn-outline-salmon btn-sm">View Attendance</a>
+                    {% if class_date.attendance_started %}
+                        <a type="button" href="#" class="btn btn-outline-salmon btn-sm">View Link</a>
+                        <a type="button" href="#" class="btn btn-outline-salmon btn-sm">Stop Attendance</a>
+                    {% else %}
+                        <a type="button" href="#" class="btn btn-outline-salmon btn-sm">Start Attendance</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock content %}

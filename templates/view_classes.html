@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block content %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Course Code</th>
+                <th scope="col">Index</th>
+                <th scope="col">Group</th>
+                <th scope="col">Class Dates</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for class in classes %}
+            <tr>
+                <td>{{ class.index.course.courseCode }}</td>
+                <td>{{ class.indexId }}</td>
+                <td>{{ class.index.className }}</td>
+                <td>
+                    <a type="button" href="/view_class_dates/{{ class.indexId }}" class="btn btn-outline-salmon btn-sm">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock content %}

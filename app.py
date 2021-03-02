@@ -257,10 +257,47 @@ def upload_class():
 
 
 @app.route('/view_classes')
+@login_required
 def view_classes():
     if current_user.role != 'staff':
         flash('You are not authorized to perform this action', 'danger')
         return redirect(url_for('dashboard'))
+
+    dashboard_data = get_dashboard()
+    indexes_in_charged = current_user.staff[0].indexesInCharge
+
+    return render_template('view_classes.html', classes=indexes_in_charged, dashboard_data=dashboard_data)
+
+
+@app.route('/view_class_dates/<int:class_index>')
+@login_required
+def view_class_dates(class_index):
+    if current_user.role != 'staff':
+        flash('You are not authorized to perform this action', 'danger')
+        return redirect(url_for('dashboard'))
+
+    dashboard_data = get_dashboard()
+    class_dates = IndexDates.query.filter_by(indexId=class_index).all()
+
+    return render_template('view_class_dates.html', dashboard_data=dashboard_data,
+                           course_code=class_dates[0].index.course.courseCode,
+                           class_name=class_dates[0].index.className, class_dates=class_dates)
+
+
+@app.route('/view_attendance/<int:class_date_id>')
+@login_required
+def view_attendance(class_date_id):
+    if current_user.role != 'staff':
+        flash('You are not authorized to perform this action', 'danger')
+        return redirect(url_for('dashboard'))
+
+    dashboard_data = get_dashboard()
+    attendances = Attendance.query.filter_by(indexDateId=class_date_id).all()
+
+    return render_template('view_attendance.html', dashboard_data=dashboard_data, attendances=attendances,
+                           date=attendances[0].indexDate.date, class_name=attendances[0].indexDate.index.className)
+
+
 
 
 if __name__ == '__main__':

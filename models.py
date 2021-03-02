@@ -28,7 +28,7 @@ class Users(db.Model, UserMixin):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
     role = db.Column(db.String(20), nullable=False)     # Role: ['admin', 'staff']
-    staffId = db.relationship('Staffs', backref='Users', lazy=True)
+    staff = db.relationship('Staffs', backref='Users', lazy=True)
 
     def __repr__(self):
         return f"Users('{self.id}', '{self.email}', '{self.role}')"
@@ -71,7 +71,7 @@ class Indexes(db.Model):
     indexId = db.Column(db.Integer, nullable=False)
     className = db.Column(db.String(5), nullable=False)
     courseId = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
-    staffInCharged = db.relationship('StaffInCharged', backref='staffs', lazy=True)
+    staffInCharged = db.relationship('StaffInCharged', backref='index', lazy=True)
     dates = db.relationship('IndexDates', backref='index', lazy=True)
 
     def __repr__(self):

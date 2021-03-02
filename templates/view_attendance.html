@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h3>Group: {{ class_name }}, Date: {{ date }}</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Attendance</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for attend in attendances %}
+            <tr>
+                <td>{{ attend.student.name }}</td>
+                <td>{{ attend.attendance }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock content %}
