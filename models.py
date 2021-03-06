@@ -2,6 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin
 from flask_bcrypt import Bcrypt
+from flask_mail import Mail
 
 import os
 
@@ -15,6 +16,12 @@ bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'index'
 login_manager.login_message_category = 'warning'
+app.config['MAIL_SERVER'] = 'smtp.googlemail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.environ.get('EMAIL_USER')
+app.config['MAIL_PASSWORD'] = os.environ.get('EMAIL_PASS')
+mail = Mail(app)
 
 
 @login_manager.user_loader
@@ -50,10 +57,11 @@ class Students(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     matricNo = db.Column(db.String(10), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
     attendances = db.relationship('Attendance', backref='student', lazy=True)
 
     def __repr__(self):
-        return f"Student('{self.id}', '{self.name}', '{self.matricNo}')"
+        return f"Student('{self.id}', '{self.name}', '{self.matricNo}', '{self.email}')"
 
 
 class Courses(db.Model):

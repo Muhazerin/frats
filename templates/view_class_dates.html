@@ -17,10 +17,10 @@
                 <td>
                     <a type="button" href="/view_attendance/{{ class_date.id }}" class="btn btn-outline-salmon btn-sm">View Attendance</a>
                     {% if class_date.attendance_started %}
-                        <a type="button" href="#" class="btn btn-outline-salmon btn-sm">View Link</a>
-                        <a type="button" href="#" class="btn btn-outline-salmon btn-sm">Stop Attendance</a>
+                        <a type="button" target="_blank" href="/take_attendance/{{ class_date.id }}" class="btn btn-outline-salmon btn-sm">View Link</a>
+                        <a type="button" href="/stop_attendance/{{ class_date.id }}" class="btn btn-outline-salmon btn-sm">Stop Attendance</a>
                     {% else %}
-                        <a type="button" href="#" class="btn btn-outline-salmon btn-sm">Start Attendance</a>
+                        <a type="button" href="/start_attendance/{{ class_date.id }}" class="btn btn-outline-salmon btn-sm">Start Attendance</a>
                     {% endif %}
                 </td>
             </tr>

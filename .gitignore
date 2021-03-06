@@ -1,2 +1,4 @@
 .idea
 __pycache__
+facial_recognition/dataset
+facial_recognition/image

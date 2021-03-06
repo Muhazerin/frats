@@ -1,12 +1,17 @@
-from flask import url_for, render_template, redirect, request, flash
+import base64
+
+from flask import url_for, render_template, redirect, request, flash, jsonify
 from flask_bcrypt import check_password_hash, generate_password_hash
 from flask_login import login_user, current_user, login_required, logout_user
+from flask_mail import Message
 
 import csv
 import values
 import datetime
-from forms import LoginForm, RegistrationForm, AdminAddFileForm
-from models import app, db, Users, Staffs, Students, Courses, Indexes, StaffInCharged, IndexDates, Attendance
+import os
+from facial_recognition import recognize
+from forms import LoginForm, RegistrationForm, AdminAddFileForm, ManualAttendanceForm
+from models import app, db, Users, Staffs, Students, Courses, Indexes, StaffInCharged, IndexDates, Attendance, mail
 
 
 def get_dashboard():
@@ -96,7 +101,8 @@ def add_student():
                 student = find_student(student_details['matricNo'])
                 if student is None:  # Add the student if it is not inside the database
                     added = True
-                    student = Students(name=student_details['name'], matricNo=student_details['matricNo'])
+                    student = Students(name=student_details['name'], matricNo=student_details['matricNo'],
+                                       email=student_details['email'])
                     db.session.add(student)
             except:
                 flash('CSV contains incorrect fields', 'danger')
@@ -231,8 +237,9 @@ def upload_class():
 
                 student = find_student(class_details['matricNo'])
                 if student is None:
-                    flash(f'Student {class_details["matricNo"]} is not inside the database. Please add this student first',
-                          'danger')
+                    flash(
+                        f'Student {class_details["matricNo"]} is not inside the database. Please add this student first',
+                        'danger')
                     return redirect(url_for('dashboard'))
 
                 index_dates = get_all_index_dates(course_index.indexId)
@@ -291,13 +298,185 @@ def view_attendance(class_date_id):
         flash('You are not authorized to perform this action', 'danger')
         return redirect(url_for('dashboard'))
 
+    prof = True if current_user.staff[0].role == "professor" else False
     dashboard_data = get_dashboard()
     attendances = Attendance.query.filter_by(indexDateId=class_date_id).all()
 
     return render_template('view_attendance.html', dashboard_data=dashboard_data, attendances=attendances,
-                           date=attendances[0].indexDate.date, class_name=attendances[0].indexDate.index.className)
+                           date=attendances[0].indexDate.date, class_name=attendances[0].indexDate.index.className,
+                           prof=prof, class_date_id=class_date_id)
 
 
+@app.route('/send_absentee_email/<int:class_date_id>')
+@login_required
+def send_absentee_email(class_date_id):
+    if current_user.role != 'staff' or current_user.staff[0].role != 'professor':
+        flash('You are not authorized to perform this action', 'danger')
+        return redirect(url_for('dashboard'))
+
+    class_date = IndexDates.query.get(class_date_id)
+
+    if not class_date.attendance_started:
+        attendances = Attendance.query.filter_by(indexDateId=class_date_id).all()
+        email_sent = False
+        for attend in attendances:
+            if attend.attendance == 'Absent':
+                email_sent = True
+                send_absent_email(attend.student.email, class_date)
+        if email_sent:
+            flash('Email has been sent to the absentee', 'success')
+        else:
+            flash('No email was sent to the absentee', 'warning')
+    else:
+        flash('Please stop the attendance taking process before sending absentees email', 'warning')
+
+    return redirect(url_for('view_attendance', class_date_id=class_date_id))
+
+
+def send_absent_email(email, class_date):
+    msg = Message('Attendance Warning',
+                  sender="noreply@demo.com", recipients=[email])
+    msg.body = f''' Dear Student,
+    
+Please be informed that you did not attend the following lesson
+Class: {class_date.index.course.courseCode} - {class_date.index.className}
+Date: {class_date.date.strftime("%d/%m/%Y")}
+
+If you have a valid MC, please email the MC to your tutor.
+Otherwise, your attendance will be absent.
+
+Thank you.
+
+Regards
+Face It System    
+'''
+
+    mail.send(msg)
+
+
+@app.route('/start_attendance/<int:class_date_id>')
+@login_required
+def start_attendance(class_date_id):
+    if current_user.role != 'staff':
+        flash('You are not authorized to perform this action', 'danger')
+        return redirect(url_for('dashboard'))
+
+    class_index = IndexDates.query.filter_by(id=class_date_id).first().index
+
+    # Check if there is an existing attendance started for current class
+    has_started = False
+    for class_date in class_index.dates:
+        if class_date.attendance_started:
+            has_started = True
+            break
+
+    if has_started:
+        flash('Please stop the existing attendance before starting new one for this class', 'warning')
+    else:
+        IndexDates.query.filter_by(id=class_date_id).first().attendance_started = True
+        db.session.commit()
+        flash('Successfully started the attendance', 'success')
+    return redirect(url_for('view_class_dates', class_index=class_index.indexId))
+
+
+@app.route('/stop_attendance/<int:class_date_id>')
+@login_required
+def stop_attendance(class_date_id):
+    if current_user.role != 'staff':
+        flash('You are not authorized to perform this action', 'danger')
+        return redirect(url_for('dashboard'))
+
+    class_date = IndexDates.query.filter_by(id=class_date_id).first()
+    class_date.attendance_started = False
+    db.session.commit()
+    flash('Successfully stopped the attendance', 'success')
+    return redirect(url_for('view_class_dates', class_index=class_date.index.indexId))
+
+
+@app.route('/take_attendance/<int:class_date_id>', methods=['GET', 'POST'])
+def take_attendance(class_date_id):
+    attendances = Attendance.query.filter_by(indexDateId=class_date_id).all()
+
+    form = ManualAttendanceForm()
+    attendance_started = attendances[0].indexDate.attendance_started
+    if attendance_started:
+        if form.validate_on_submit():
+            taken = False
+            for attend in attendances:
+                if attend.student.matricNo == form.matricNo.data.upper():
+                    taken = True
+                    if attend.attendance != 'Present':
+                        attend.attendance = 'Present'
+                        db.session.commit()
+                        flash(f"Attendance has been taken for Student {form.matricNo.data.upper()}", "success")
+                    else:
+                        flash(f"Attendance was already taken for Student {form.matricNo.data.upper()}", "info")
+            if not taken:
+                flash(f"Unable to take attendance for Student {form.matricNo.data.upper()}", "danger")
+            form.matricNo.data = ""
+        return render_template('take_attendance.html', attendances=attendances,
+                               date=attendances[0].indexDate.date, class_name=attendances[0].indexDate.index.className,
+                               class_date_id=class_date_id, form=form)
+    else:
+        flash('The attendance taking for this class has not started', 'warning')
+        return redirect(url_for('error'))
+
+
+@app.route('/error')
+def error():
+    return render_template('error.html')
+
+
+@app.route('/take_photo/<int:class_date_id>')
+def take_photo(class_date_id):
+    return render_template('take_photo.html', class_date_id=class_date_id)
+
+
+@app.route('/facial_recognition/<int:class_date_id>')
+def facial_recognition(class_date_id):
+    photo_base64 = request.args.get('photo_cap')
+    header, encoded = photo_base64.split(",", 1)
+    binary_data = base64.b64decode(encoded)
+    image_name = "photo.jpg"
+
+    with open(os.path.join("D:\\Python Projects\\flask-project\\frats\\facial_recognition\\image",
+                           image_name), "wb") as f:
+        f.write(binary_data)
+
+    result = recognize.recognize_image()
+    print(result)
+
+    return jsonify(result=result, class_date_id=class_date_id)
+
+
+@app.route('/facial_recognition_attendance/<int:class_date_id>/<string:matricNo>')
+def facial_recognition_attendance(class_date_id, matricNo):
+    attendances = Attendance.query.filter_by(indexDateId=class_date_id).all()
+
+    attendance_started = attendances[0].indexDate.attendance_started
+    taken = False
+    if attendance_started:
+        for attend in attendances:
+            if attend.student.matricNo == matricNo:
+                taken = True
+                if attend.attendance != "Present":
+                    attend.attendance = "Present"
+                    db.session.commit()
+                    flash(f"Attendance has been taken for Student {matricNo}", "success")
+                else:
+                    flash(f"Attendance was already taken for Student {matricNo}", "info")
+        if not taken:
+            flash(f"Unable to take attendance for Student {matricNo}", "danger")
+        return redirect(url_for('take_attendance', class_date_id=class_date_id))
+    else:
+        flash('The attendance taking for this class has not started', 'warning')
+        return redirect(url_for('error'))
+
+
+@app.route('/wrong_image/<int:class_date_id>')
+def wrong_image(class_date_id):
+    flash(f"Unable to take attendance using facial recognition. Please use manual attendance", 'warning')
+    return redirect(url_for('take_attendance', class_date_id=class_date_id))
 
 
 if __name__ == '__main__':

@@ -1,0 +1,27 @@
+{% extends "view_attendance.html" %}
+{% block take_attendance_content %}
+    <div>
+        <a type="button" href="{{ url_for('take_photo', class_date_id=class_date_id) }}" class="btn btn-outline-salmon">Facial Recognition Attendance</a>
+        <a type="button" class="btn btn-outline-salmon" data-bs-toggle="modal" data-bs-target="#manualAttendance">Manual Attendance</a>
+    </div>
+    <div class="modal fade" id="manualAttendance" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="manualAttendanceLabel" aria-hidden="true">
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="manualAttendanceLabel">Manual Attendance</h5>
+                    </div>
+                    <div class="modal-body">
+                        Enter your matric no
+                        {{ form.matricNo(class="form-control input-lg") }}
+                    </div>
+                    <div class="modal-footer">
+                        <button id="btn_cancel_button" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock take_attendance_content %}

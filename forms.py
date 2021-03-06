@@ -45,3 +45,10 @@ class AdminAddFileForm(FlaskForm):
     fileInput = FileField('Please upload the details in a CSV file',
                           validators=[FileRequired(), FileAllowed(['csv'], 'CSV File Only!')])
     submit = SubmitField('Submit')
+
+
+class ManualAttendanceForm(FlaskForm):
+    matricNo = StringField('matric no',
+                           validators=[InputRequired(), Length(max=9)],
+                           render_kw={"placeholder":"U1234567A"})
+    submit = SubmitField('Confirm')

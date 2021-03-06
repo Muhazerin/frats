@@ -1,0 +1,122 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div id="wait" style="display:none">
+        <h2>Please wait while server is recognizing your image</h2>
+    </div>
+    <div id="my_photo_booth">
+        <div id="my_camera"></div>
+
+            <script src="{{url_for('static',filename='webcam.min.js')}}"></script>
+
+            <!-- Configure a few settings and attach camera -->
+            <script language="JavaScript">
+                Webcam.set({
+                    // live preview size
+                    width: 640,
+                    height: 480,
+
+                    // format and quality
+                    image_format: 'jpeg',
+                    jpeg_quality: 90,
+
+                    // flip horizontal (mirror mode)
+                    flip_horiz: true
+                });
+                Webcam.attach( '#my_camera' );
+            </script>
+
+            <br>
+
+            <!-- A button for taking snaps -->
+            <form>
+                <div id="pre_take_buttons">
+                    <!-- This button is shown before the user takes a snapshot -->
+                    <input type=button class="btn btn-success btn-squared" value="CAPTURE" onClick="preview_snapshot()">
+                </div>
+
+                <div id="post_take_buttons" style="display:none">
+                    <!-- These buttons are shown after a snapshot is taken -->
+                    <input type=button class="btn btn-danger btn-squared responsive-width" value="&lt; AGAIN" onClick="cancel_preview()">
+                    <input type=button class="btn btn-success btn-squared responsive-width" value="SAVE &gt;" onClick="save_photo()" style="font-weight:bold;">
+                </div>
+            </form>
+    </div>
+    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmationModalLabel">Facial Recognition Result</h5>
+                </div>
+                <div class="modal-body">
+                    <p id="facial-recognition-result">Put result here</p>
+                </div>
+                <div class="modal-footer">
+                    <a id="cancel_button" href="">
+                        <button id="btn_cancel_button" type="button" class="btn btn-secondary">No</button>
+                    </a>
+                    <a id="confirmation_button" href="">
+                        <button type="button" class="btn btn-primary">Yes</button>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script language="JavaScript">
+        function preview_snapshot() {
+            // freeze camera so user can preview current frame
+            Webcam.freeze();
+
+            // swap button sets
+            document.getElementById('pre_take_buttons').style.display = 'none';
+            document.getElementById('post_take_buttons').style.display = '';
+        }
+
+        function cancel_preview() {
+            // cancel preview freeze and return to live camera view
+            Webcam.unfreeze();
+
+            // swap buttons back to first set
+            document.getElementById('pre_take_buttons').style.display = '';
+            document.getElementById('post_take_buttons').style.display = 'none';
+        }
+
+        function save_photo() {
+            // actually snap photo (from preview freeze).
+            Webcam.snap( function(data_uri) {
+                document.getElementById('pre_take_buttons').style.display = 'none';
+                document.getElementById('post_take_buttons').style.display = 'none';
+
+                // display results in page
+                console.log(data_uri);
+
+                // shut down camera, stop capturing
+                Webcam.reset();
+
+                document.getElementById('wait').style.display = '';
+
+                $.getJSON($SCRIPT_ROOT + '/facial_recognition/{{ class_date_id }}', {
+                    photo_cap: data_uri,
+                },function(data){
+                    var str_cmp = data.result.localeCompare("unknown");
+                    if (str_cmp === 0) {
+                        document.getElementById("confirmation_button").style.display = 'none';
+                        document.getElementById("facial-recognition-result").innerHTML = "Unable to recognize you using facial recognition";
+                        document.getElementById("cancel_button").href = "/wrong_image/" + data.class_date_id;
+                        document.getElementById("btn_cancel_button").innerHTML = "Back to attendance";
+                    }
+                    else {
+                        document.getElementById("facial-recognition-result").innerHTML = "Are you " + data.result + "?";
+                        document.getElementById("confirmation_button").href = "/facial_recognition_attendance/" + data.class_date_id + "/" + data.result;
+                        document.getElementById("cancel_button").href = "/wrong_image/" + data.class_date_id;
+                    }
+
+                    var myModal = new bootstrap.Modal(document.getElementById('confirmationModal'), {
+                        backdrop: 'static'
+                    });
+                    myModal.show();
+                });
+
+            } );
+        }
+    </script>
+{% endblock content %}

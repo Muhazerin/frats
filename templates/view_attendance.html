@@ -1,6 +1,11 @@
 {% extends "layout.html" %}
 {% block content %}
     <h3>Group: {{ class_name }}, Date: {{ date }}</h3>
+    {% block take_attendance_content %}
+    {% endblock take_attendance_content %}
+    {% if prof %}
+        <a type="button" class="btn btn-outline-salmon" href="/send_absentee_email/{{ class_date_id }}" >Send Absentee Email</a>
+    {% endif %}
     <table class="table">
         <thead>
             <tr>
