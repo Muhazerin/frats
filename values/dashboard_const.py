@@ -8,6 +8,14 @@ dashboards = {
                 'href': "/register_account"
             }
         },
+{
+            'title': 'Add Student',
+            'description': 'Add a student into this system',
+            'link': {
+                'content': 'Add Student',
+                'href': '/add_student'
+            }
+        },
         {
             'title': 'Course Creation',
             'description': 'Upload course details from NTU into this system',
@@ -22,14 +30,6 @@ dashboards = {
             'link': {
                 'content': 'Upload Class',
                 'href': '/upload_class'
-            }
-        },
-        {
-            'title': 'Add Student',
-            'description': 'Add a student into this system',
-            'link': {
-                'content': 'Add Student',
-                'href': '/add_student'
             }
         }
     ],
