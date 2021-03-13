@@ -72,15 +72,15 @@
                 </div>
                 <div class="mb-3">
                     {{ form.appointment.label(class="form-label") }}
-                    {% if form.appointment .errors %}
-                        {{ form.appointment (class="form-control form-control-lg is-invalid") }}
+                    {% if form.appointment.errors %}
+                        {{ form.appointment (class="form-select form-select-lg is-invalid") }}
                         <div class="invalid-feedback">
                             {% for error in form.appointment.errors %}
                                 <span>{{ error }}</span>
                             {% endfor %}
                         </div>
                     {% else %}
-                        {{ form.appointment (class="form-control form-control-lg") }}
+                        {{ form.appointment (class="form-select form-select-lg") }}
                     {% endif %}
                 </div>
             </fieldset>

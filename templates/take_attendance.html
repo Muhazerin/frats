@@ -1,5 +1,6 @@
-{% extends "view_attendance.html" %}
-{% block take_attendance_content %}
+{% extends "layout.html" %}
+{% block content %}
+    <h3>Group: {{ class_name }}, Date: {{ date }}</h3>
     <div>
         <a type="button" href="{{ url_for('take_photo', class_date_id=class_date_id) }}" class="btn btn-outline-salmon">Facial Recognition Attendance</a>
         <a type="button" class="btn btn-outline-salmon" data-bs-toggle="modal" data-bs-target="#manualAttendance">Manual Attendance</a>
@@ -24,4 +25,20 @@
             </div>
         </form>
     </div>
-{% endblock take_attendance_content %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Attendance</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for attend in attendances %}
+            <tr>
+                <td>{{ attend.student.name }}</td>
+                <td>{{ attend.attendance }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock content %}

@@ -301,10 +301,36 @@ def view_attendance(class_date_id):
     prof = True if current_user.staff[0].role == "professor" else False
     dashboard_data = get_dashboard()
     attendances = Attendance.query.filter_by(indexDateId=class_date_id).all()
+    attendance_started = IndexDates.query.get(class_date_id).attendance_started
 
     return render_template('view_attendance.html', dashboard_data=dashboard_data, attendances=attendances,
                            date=attendances[0].indexDate.date, class_name=attendances[0].indexDate.index.className,
-                           prof=prof, class_date_id=class_date_id)
+                           prof=prof, class_date_id=class_date_id, attendance_started=attendance_started)
+
+
+@app.route('/edit_attendance/<int:class_date_id>', methods=['GET', 'POST'])
+@login_required
+def edit_attendance(class_date_id):
+    if current_user.role != 'staff':
+        flash('You are not authorized to perform this action', 'danger')
+        return redirect(url_for('dashboard'))
+
+    attendances = Attendance.query.filter_by(indexDateId=class_date_id).all()
+
+    if request.method == "POST":
+        for attend in attendances:
+            attend.attendance = request.form[f'attendance_{attend.id}']
+        db.session.commit()
+        flash('Successfully changed the attendance', 'success')
+        return redirect(url_for('view_attendance', class_date_id=class_date_id))
+
+    prof = True if current_user.staff[0].role == "professor" else False
+    dashboard_data = get_dashboard()
+
+
+    return render_template('edit_attendance.html', dashboard_data=dashboard_data, attendances=attendances,
+                           date=attendances[0].indexDate.date, class_name=attendances[0].indexDate.index.className,
+                           prof=prof)
 
 
 @app.route('/send_absentee_email/<int:class_date_id>')
@@ -439,8 +465,9 @@ def facial_recognition(class_date_id):
     binary_data = base64.b64decode(encoded)
     image_name = "photo.jpg"
 
-    with open(os.path.join("D:\\Python Projects\\flask-project\\frats\\facial_recognition\\image",
-                           image_name), "wb") as f:
+    with open(f"facial_recognition/image/{image_name}", "wb") as f:
+    # with open(os.path.join("D:\\Python Projects\\flask-project\\frats\\facial_recognition\\image",
+    #                        image_name), "wb") as f:
         f.write(binary_data)
 
     result = recognize.recognize_image()

@@ -63,6 +63,7 @@ def recognize_image():
 
 	# loop over the detections
 	text = "unknown"
+	con = 0.0
 	for i in range(0, detections.shape[2]):
 		# extract the confidence (i.e., probability) associated with the
 		# prediction
@@ -100,6 +101,8 @@ def recognize_image():
 			# draw the bounding box of the face along with the associated
 			# probability
 			text = f"{name}"
+			con = confidence
+	print(con)
 	return text
 
 

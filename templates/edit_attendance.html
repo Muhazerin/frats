@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h3>Group: {{ class_name }}, Date: {{ date }}</h3>
+    <form action="" method="post">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Attendance</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for attend in attendances %}
+                <tr>
+                    <td>{{ attend.student.name }}</td>
+                    <td>
+                        <select class="form-select" name="attendance_{{ attend.id }}">
+                            {% if attend.attendance == 'Absent' %}
+                                <option selected value="Absent">Absent</option>
+                                <option value="Present">Present</option>
+                                {% if prof %}
+                                    <option value="MC">MC</option>
+                                {% endif %}
+                            {% elif attend.attendance == 'Present'%}
+                                <option value="Absent">Absent</option>
+                                <option selected value="Present">Present</option>
+                                {% if prof %}
+                                    <option value="MC">MC</option>
+                                {% endif %}
+                            {% else %}
+                                <option value="Absent">Absent</option>
+                                <option value="Present">Present</option>
+                                {% if prof %}
+                                    <option selected value="MC">MC</option>
+                                {% endif %}
+                            {% endif %}
+                        </select>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" class="btn btn-outline-salmon">Change Attendance</button>
+    </form>
+{% endblock content %}
