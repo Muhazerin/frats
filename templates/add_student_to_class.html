@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div class="content-section">
+        <form action="" method="post">
+            <fieldset class="mb-3">
+                <legend class="border-bottom mb-4">Add Student to class</legend>
+                <div class="mb-3">
+                    <label class="form-label" for="name">Student Name</label>
+                    <select class="form-select form-select-lg" name="name" id="name">
+                        {% for student in students %}
+                            <option value="{{ student.id }}">{{ student.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </fieldset>
+            <div class="mb-3">
+                <input class="btn btn-outline-salmon" type="submit" id="submit" name="submit" value="Add Student to class">
+            </div>
+        </form>
+    </div>
+{% endblock content %}

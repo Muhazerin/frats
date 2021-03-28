@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h3>Course code: {{ course_code }}, Group: {{ class_name }}</h3>
+    <div>
+        <a type="button" href="{{ url_for('add_student_to_class', index_id=index_id) }}" class="btn btn-outline-salmon">Add Student to this class</a>
+        <a type="button" href="{{ url_for('edit_student_seat_no', index_id=index_id) }}" class="btn btn-outline-salmon">Edit Seat No</a>
+        <a type="button" href="{{ url_for('remove_students', index_id=index_id) }}" class="btn btn-outline-salmon">Remove Students</a>
+    </div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Seat No</th>
+                <th scope="col">Matric No</th>
+                <th scope="col">Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for attendance in attendances %}
+                <tr>
+                    <td>{{ attendance.seatNo }}</td>
+                    <td>{{ attendance.student.matricNo }}</td>
+                    <td>{{ attendance.student.name }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock content %}

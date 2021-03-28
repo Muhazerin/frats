@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div>
+        <a type="button" href="{{ url_for('register_one_account') }}" class="btn btn-outline-salmon">Register 1 Account</a>
+        <a type="button" href="{{ url_for('register_account') }}" class="btn btn-outline-salmon">Register Accounts</a>
+        <a type="button" href="{{ url_for('edit_account') }}" class="btn btn-outline-salmon">Edit Account</a>
+        <a type="button" href="{{ url_for('remove_account') }}" class="btn btn-outline-salmon">Remove Account</a>
+    </div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Employee No</th>
+                <th scope="col">Email</th>
+                <th scope="col">Role</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for account in accounts %}
+                <tr>
+                    <td>{{ account.staff[0].name }}</td>
+                    <td>{{ account.staff[0].employeeNo }}</td>
+                    <td>{{ account.email }}</td>
+                    <td>{{ account.staff[0].role }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock content %}

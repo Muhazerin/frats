@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block content %}
+    <form action="" method="post">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Matric No</th>
+                    <th scope="col">Email</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                    <tr>
+                        <td>
+                            <input required type="text" class="form-control form-control-lg" name="name_{{ student.id }}" value="{{ student.name }}">
+                        </td>
+                        <td>{{ student.matricNo }}</td>
+                        <td>{{ student.email }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" class="btn btn-outline-salmon">Edit Students</button>
+    </form>
+{% endblock content %}

@@ -1,35 +1,35 @@
 dashboards = {
     "admin": [
         {
-            'title': 'Account Registration',
-            'description': 'Register a new account for professor/lab technician to access this system',
+            'title': 'Account Management',
+            'description': 'Manage staffs accounts in this system',
             'link': {
-                'content': 'Register Account',
-                'href': "/register_account"
-            }
-        },
-{
-            'title': 'Add Student',
-            'description': 'Add a student into this system',
-            'link': {
-                'content': 'Add Student',
-                'href': '/add_student'
+                'content': 'Manage Account',
+                'href': "/manage_account"
             }
         },
         {
-            'title': 'Course Creation',
-            'description': 'Upload course details from NTU into this system',
+            'title': 'Student Management',
+            'description': 'Manage the students in the system',
             'link': {
-                'content': 'Upload Course',
-                'href': '/upload_course'
+                'content': 'Student Management',
+                'href': '/manage_student'
             }
         },
         {
-            'title': 'Class Creation',
-            'description': 'Upload class details from NTU into this system',
+            'title': 'Course Management',
+            'description': 'Manage the courses in this system',
             'link': {
-                'content': 'Upload Class',
-                'href': '/upload_class'
+                'content': 'Manage Course',
+                'href': '/manage_course'
+            }
+        },
+        {
+            'title': 'Class Management',
+            'description': 'Manage the classes in this system',
+            'link': {
+                'content': 'Manage Class',
+                'href': '/manage_class'
             }
         }
     ],

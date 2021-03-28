@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div>
+        <a type="button" href="{{ url_for('upload_class') }}" class="btn btn-outline-salmon">Upload Classes</a>
+    </div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Course Code</th>
+                <th scope="col">Index</th>
+                <th scope="col">Dates</th>
+                <th scope="col">Students</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for class in classes %}
+                <tr>
+                    <td>{{ class.course.courseCode }}</td>
+                    <td>{{ class.indexId }}</td>
+                    <td>{{ class_dates[loop.index - 1]|join(", ") }}</td>
+                    <td>
+                        <a type="button" href="{{ url_for('view_class_students', index_id=class.id) }}" class="btn btn-outline-salmon">View Students</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock content %}

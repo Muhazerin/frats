@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h3>Course code: {{ course_code }}, Group: {{ class_name }}</h3>
+    <form action="" method="post">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Seat No</th>
+                    <th scope="col">Matric No</th>
+                    <th scope="col">Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for attendance in attendances %}
+                    <tr>
+                        <td>
+                            <input required class="form-control form-control-lg" type="number" min="1" name="seatNo_{{ attendance.studentId }}" value="{{ attendance.seatNo }}">
+                        </td>
+                        <td>{{ attendance.student.matricNo }}</td>
+                        <td>{{ attendance.student.name }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" class="btn btn-outline-salmon">Edit Seat No</button>
+    </form>
+{% endblock content %}

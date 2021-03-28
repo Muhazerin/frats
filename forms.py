@@ -1,8 +1,8 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SelectField, SubmitField
+from wtforms import StringField, PasswordField, BooleanField, SelectField, SubmitField, IntegerField
 from wtforms.validators import InputRequired, Email, Length, EqualTo, ValidationError
 from flask_wtf.file import FileField, FileRequired, FileAllowed
-from models import Users
+from models import Users, Students
 
 
 class LoginForm(FlaskForm):
@@ -41,6 +41,26 @@ class RegistrationForm(FlaskForm):
             raise ValidationError("Please use NTU email.")
 
 
+class StudentRegistrationForm(FlaskForm):
+    name = StringField('Name', validators=[InputRequired(),
+                                           Length(max=80)])
+    matricNo = StringField('Matric Number', validators=[InputRequired(),
+                                                            Length(max=16)])
+    email = StringField('Email', validators=[InputRequired(),
+                                             Email(message='Invalid email'),
+                                             Length(max=50)])
+    submit = SubmitField('Add Student')
+
+    def validate_email(self, email):
+        student = Students.query.filter_by(email=email.data.casefold()).first()
+        if student:
+            raise ValidationError("That email exists inside the database.")
+
+        email_validation = email.data.casefold().split('@')
+        if email_validation[1] != 'e.ntu.edu.sg':
+            raise ValidationError("Please use NTU email.")
+
+
 class AdminAddFileForm(FlaskForm):
     fileInput = FileField('Please upload the details in a CSV file',
                           validators=[FileRequired(), FileAllowed(['csv'], 'CSV File Only!')])
@@ -52,3 +72,9 @@ class ManualAttendanceForm(FlaskForm):
                            validators=[InputRequired(), Length(max=9)],
                            render_kw={"placeholder":"U1234567A"})
     submit = SubmitField('Confirm')
+
+
+class AddStudentToClassForm(FlaskForm):
+    students = Students.query.all()
+    seatNo = IntegerField("Seat No", validators=[InputRequired()])
+    name = SelectField("Student Name")

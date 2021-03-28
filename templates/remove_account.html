@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block content %}
+    <form action="" method="post">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Remove?</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Employee No</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Role</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for account in accounts %}
+                    <tr>
+                        <td>
+                            <input class="form-check-input" type="checkbox" name="remove" value="{{ account.id }}">
+                        </td>
+                        <td>{{ account.staff[0].name }}</td>
+                        <td>{{ account.staff[0].employeeNo }}</td>
+                        <td>{{ account.email }}</td>
+                        <td>{{ account.staff[0].role }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" class="btn btn-outline-salmon">Remove Accounts</button>
+    </form>
+{% endblock content %}

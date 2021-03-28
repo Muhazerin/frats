@@ -13,10 +13,10 @@
             {% for class in classes %}
             <tr>
                 <td>{{ class.index.course.courseCode }}</td>
-                <td>{{ class.indexId }}</td>
+                <td>{{ class.index.indexId }}</td>
                 <td>{{ class.index.className }}</td>
                 <td>
-                    <a type="button" href="/view_class_dates/{{ class.indexId }}" class="btn btn-outline-salmon btn-sm">View</a>
+                    <a type="button" href="/view_class_dates/{{ class.index.id }}" class="btn btn-outline-salmon btn-sm">View</a>
                 </td>
             </tr>
             {% endfor %}

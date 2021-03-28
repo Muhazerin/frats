@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h3>Course code: {{ course_code }}</h3>
+    <table class="table">
+        <thead>
+            <th scope="col">Index</th>
+            <th scope="col">Group</th>
+            <th scope="col">Room</th>
+            <th scope="col">Class Dates</th>
+        </thead>
+        <tbody>
+            {% for index in indexes %}
+                <tr>
+                    <td>{{ index.indexId }}</td>
+                    <td>{{ index.className }}</td>
+                    <td>{{ index.room }}</td>
+                    <td>{{ class_dates[loop.index - 1]|join(", ") }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock content %}

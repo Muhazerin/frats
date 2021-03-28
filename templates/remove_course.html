@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block content %}
+    <form action="" method="post">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Remove?</th>
+                    <th scope="col">Course Code</th>
+                    <th scope="col">Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for course in courses %}
+                    <tr>
+                        <td>
+                            <input class="form-check-input" type="checkbox" name="remove" value="{{ course.id }}">
+                        </td>
+                        <td>{{ course.courseCode }}</td>
+                        <td>{{ course.name }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" class="btn btn-outline-salmon">Remove Courses</button>
+    </form>
+{% endblock content %}

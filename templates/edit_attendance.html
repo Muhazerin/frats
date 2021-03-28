@@ -5,6 +5,7 @@
         <table class="table">
             <thead>
                 <tr>
+                    <th scope="col">Seat No</th>
                     <th scope="col">Name</th>
                     <th scope="col">Attendance</th>
                 </tr>
@@ -12,6 +13,7 @@
             <tbody>
                 {% for attend in attendances %}
                 <tr>
+                    <td>{{ attend.seatNo }}</td>
                     <td>{{ attend.student.name }}</td>
                     <td>
                         <select class="form-select" name="attendance_{{ attend.id }}">

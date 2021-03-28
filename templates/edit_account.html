@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+{% block content %}
+    <form action="" method="post">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Employee No</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Role</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for account in accounts %}
+                    <tr>
+                        <td>
+                            <input required type="text" class="form-control form-control-lg" name="name_{{ account.id }}" value="{{ account.staff[0].name }}">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control form-control-lg" name="employeeNo_{{ account.id }}" value="{{ account.staff[0].employeeNo }}">
+                        </td>
+                        <td>
+                            <input required type="text" class="form-control form-control-lg" name="email_{{ account.id }}" value="{{ account.email }}">
+                        </td>
+                        <td>
+                            <select class="form-select form-select-lg" name="role_{{ account.id }}">
+                                {% if account.staff[0].role == 'professor' %}
+                                    <option selected value="professor">professor</option>
+                                    <option value="lab technician">lab technician</option>
+                                {% else %}
+                                    <option value="professor">professor</option>
+                                    <option selected value="lab technician">lab technician</option>
+                                {% endif %}
+                            </select>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" class="btn btn-outline-salmon">Edit Accounts</button>
+    </form>
+{% endblock content %}
