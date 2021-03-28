@@ -2,3 +2,4 @@
 __pycache__
 facial_recognition/dataset
 facial_recognition/image
+site.db
