@@ -16,12 +16,8 @@
                         <td>
                             <input required type="text" class="form-control form-control-lg" name="name_{{ account.id }}" value="{{ account.staff[0].name }}">
                         </td>
-                        <td>
-                            <input type="text" class="form-control form-control-lg" name="employeeNo_{{ account.id }}" value="{{ account.staff[0].employeeNo }}">
-                        </td>
-                        <td>
-                            <input required type="text" class="form-control form-control-lg" name="email_{{ account.id }}" value="{{ account.email }}">
-                        </td>
+                        <td>{{ account.staff[0].employeeNo }}</td>
+                        <td>{{ account.email }}</td>
                         <td>
                             <select class="form-select form-select-lg" name="role_{{ account.id }}">
                                 {% if account.staff[0].role == 'professor' %}

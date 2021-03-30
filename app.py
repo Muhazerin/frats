@@ -1,6 +1,5 @@
 import base64
 
-from flask import Flask
 from flask import url_for, render_template, redirect, request, flash, jsonify
 from flask_bcrypt import check_password_hash, generate_password_hash
 from flask_login import login_user, current_user, login_required, logout_user
@@ -13,6 +12,7 @@ import os
 from facial_recognition import recognize
 from forms import LoginForm, RegistrationForm, AdminAddFileForm, ManualAttendanceForm, StudentRegistrationForm
 from models import app, db, Users, Staffs, Students, Courses, Indexes, StaffInCharged, IndexDates, Attendance, mail
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 
 def get_dashboard():
@@ -141,24 +141,13 @@ def edit_account():
     accounts = Users.query.filter_by(role='staff').all()
 
     if request.method == "POST":
-        valid = True
         for account in accounts:
-            # validate the emails in the first pass
-            email_validation = request.form[f'email_{account.id}'].split('@')
-            if email_validation[1] != 'e.ntu.edu.sg':
-                flash(f'{request.form[f"email_{account.id}"]} is not a valid NTU email', 'danger')
-                valid = False
-                break
-        if valid:
-            for account in accounts:
-                # insert into database at second pass
-                account.staff[0].name = request.form[f'name_{account.id}']
-                account.email = request.form[f'email_{account.id}']
-                account.staff[0].employeeNo = request.form[f'employeeNo_{account.id}']
-                account.staff[0].role = request.form[f'role_{account.id}']
-            db.session.commit()
-            flash('Successfully edited the accounts', 'success')
-            return redirect(url_for('manage_account'))
+            # insert into database at second pass
+            account.staff[0].name = request.form[f'name_{account.id}']
+            account.staff[0].role = request.form[f'role_{account.id}']
+        db.session.commit()
+        flash('Successfully edited the accounts', 'success')
+        return redirect(url_for('manage_account'))
 
     return render_template('edit_account.html', accounts=accounts, dashboard_data=dashboard_data)
 
@@ -363,7 +352,6 @@ def view_course_index(course_id):
             temp_dates.append(i_date.date.strftime("%d/%m/%Y"))
         class_dates.append(temp_dates)
 
-    print(class_dates)
     return render_template('view_course_index.html', course_code=indexes[0].course.courseCode, indexes=indexes,
                            class_dates=class_dates, dashboard_data=dashboard_data)
 
@@ -827,33 +815,82 @@ def stop_attendance(class_date_id):
     return redirect(url_for('view_class_dates', class_index=class_date.index.id))
 
 
+def send_manual_attendance_email(attendance_id, matric_no, lab_tech_email, expires_sec=360):
+    s = Serializer(app.config['SECRET_KEY'], expires_sec)
+    token = s.dumps({'attendance_id': attendance_id,
+                     'matric_no': matric_no}).decode('utf-8')
+    msg = Message('Please Validate',
+                  sender="noreply@demo.com", recipients=[lab_tech_email])
+    msg.body = f''' Dear Lab Technician,
+    
+Please be informed that a student, {matric_no}, is performing manual attendance taking.
+Please verify and click the following link upon verification:
+{url_for('manual_attendance', token=token, _external=True)}
+
+Thank you.
+
+Regards
+Face It System
+'''
+    mail.send(msg)
+
+
 @app.route('/take_attendance/<int:class_date_id>', methods=['GET', 'POST'])
 def take_attendance(class_date_id):
     attendances = Attendance.query.filter_by(indexDateId=class_date_id).all()
 
     form = ManualAttendanceForm()
     attendance_started = attendances[0].indexDate.attendance_started
+    room_no = attendances[0].indexDate.index.room
     if attendance_started:
         if form.validate_on_submit():
-            taken = False
+            valid_matric = False
             for attend in attendances:
                 if attend.student.matricNo == form.matricNo.data.upper():
-                    taken = True
-                    if attend.attendance != 'Present':
-                        attend.attendance = 'Present'
-                        db.session.commit()
-                        flash(f"Attendance has been taken for Student {form.matricNo.data.upper()}", "success")
+                    valid_matric = True
+                    if attend.attendance != "Present":
+                        lab_tech_email = ""
+                        for staff_in_charged in attend.indexDate.index.staffInCharged:
+                            if staff_in_charged.staff.role == "lab technician":
+                                lab_tech_email = staff_in_charged.staff.user.email
+                                break
+                        send_manual_attendance_email(attend.id, attend.student.matricNo, lab_tech_email)
+                        flash('Email has been sent to the lab technician. Please inform them', 'success')
                     else:
-                        flash(f"Attendance was already taken for Student {form.matricNo.data.upper()}", "info")
-            if not taken:
+                        flash(f'Your attendance, {attend.student.matricNo}, has already been marked', 'info')
+                    # if attend.attendance != 'Present':
+                    #     attend.attendance = 'Present'
+                    #     db.session.commit()
+                    #     flash(f"Attendance has been taken for Student {form.matricNo.data.upper()}", "success")
+                    # else:
+                    #     flash(f"Attendance was already taken for Student {form.matricNo.data.upper()}", "info")
+            if not valid_matric:
                 flash(f"Unable to take attendance for Student {form.matricNo.data.upper()}", "danger")
             form.matricNo.data = ""
         return render_template('take_attendance.html', attendances=attendances,
                                date=attendances[0].indexDate.date, class_name=attendances[0].indexDate.index.className,
-                               class_date_id=class_date_id, form=form)
+                               class_date_id=class_date_id, form=form, room_no=room_no)
     else:
         flash('The attendance taking for this class has not started', 'warning')
         return redirect(url_for('error'))
+
+
+@app.route('/manual_attendance/<token>')
+def manual_attendance(token):
+    s = Serializer(app.config['SECRET_KEY'])
+    try:
+        token_info = s.loads(token)
+    except:
+        token_info = None
+    if token_info is None:
+        flash('That is an invalid or expired token', 'warning')
+        return redirect(url_for('error'))
+    else:
+        attend = Attendance.query.get(token_info['attendance_id'])
+        attend.attendance = 'Present'
+        db.session.commit()
+        flash(f'Attendance has been taken for Student {token_info["matric_no"]}', 'success')
+        return redirect(url_for('take_attendance', class_date_id=attend.indexDateId))
 
 
 @app.route('/error')

@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% block content %}
-    <h3>Group: {{ class_name }}, Date: {{ date }}</h3>
+    <h3>Room: {{ room_no }}, Group: {{ class_name }}, Date: {{ date }}</h3>
     <div>
         <a type="button" href="{{ url_for('take_photo', class_date_id=class_date_id) }}" class="btn btn-outline-salmon">Facial Recognition Attendance</a>
         <a type="button" class="btn btn-outline-salmon" data-bs-toggle="modal" data-bs-target="#manualAttendance">Manual Attendance</a>
@@ -14,6 +14,7 @@
                         <h5 class="modal-title" id="manualAttendanceLabel">Manual Attendance</h5>
                     </div>
                     <div class="modal-body">
+                        Please inform the lab technician that you are performing manual attendance.<br><br>
                         Enter your matric no
                         {{ form.matricNo(class="form-control input-lg") }}
                     </div>
